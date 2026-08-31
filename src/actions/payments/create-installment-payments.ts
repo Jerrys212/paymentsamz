@@ -17,8 +17,13 @@ export type CreateInstallmentPaymentsResult = { success: true; createdCount: num
 
 /**
  * The backend has no installments concept, so "N meses sin intereses" is
- * simulated by creating one new Payment per month (looped through the
- * existing create endpoint — there's no bulk-create endpoint).
+ * simulated by creating one new Payment per month, looped through the
+ * existing create endpoint (there's no bulk-create endpoint) — one at a
+ * time, in order. This is deliberately sequential rather than
+ * Promise.all(...map...): firing all N creates at once let the backend
+ * insert them out of order (createdAt no longer matched installment
+ * index, so "7/14" could sort before "14/14") and occasionally dropped
+ * one under the concurrent load. Awaiting each in turn fixes both.
  */
 export async function createInstallmentPayments(input: CreateInstallmentPaymentsInput): Promise<CreateInstallmentPaymentsResult> {
     const parsed = CreateInstallmentPaymentsInputSchema.safeParse(input);
@@ -29,21 +34,25 @@ export async function createInstallmentPayments(input: CreateInstallmentPayments
     const { name, total, months } = parsed.data;
     const installments = calculateInstallments(total, months);
 
-    const results = await Promise.all(
-        installments.map((installment) =>
-            createPayment({
-                name: `${name} (MSI ${installment.index}/${months})`,
-                total: installment.total,
-            }),
-        ),
-    );
+    let createdCount = 0;
+    let firstFailureMessage: string | undefined;
 
-    const createdCount = results.filter((result) => result.success).length;
+    for (const installment of installments) {
+        const result = await createPayment({
+            name: `${name} (MSI ${installment.index}/${months})`,
+            total: installment.total,
+        });
+
+        if (!result.success) {
+            firstFailureMessage = result.errors._form?.[0];
+            break;
+        }
+
+        createdCount += 1;
+    }
 
     if (createdCount === 0) {
-        const firstFailure = results.find((result) => !result.success);
-        const message = firstFailure && !firstFailure.success ? (firstFailure.errors._form?.[0] ?? undefined) : undefined;
-        return { success: false, message: message ?? "No se pudieron crear los pagos diferidos." };
+        return { success: false, message: firstFailureMessage ?? "No se pudieron crear los pagos diferidos." };
     }
 
     if (createdCount < months) {
