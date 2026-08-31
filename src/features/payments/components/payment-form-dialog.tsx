@@ -179,7 +179,7 @@ export function PaymentFormDialog({ mode, defaultValues, trigger, tooltip }: Pay
                             </Button>
                         </DialogClose>
                         <Button type="submit" disabled={isPending}>
-                            {deferToMonths ? "Diferir pago" : mode === "clone" ? "Crear copia" : "Guardar pago"}
+                            {deferToMonths ? `Diferir a ${months} meses` : mode === "clone" ? "Crear copia" : "Guardar pago"}
                         </Button>
                     </DialogFooter>
                 </form>
