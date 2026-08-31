@@ -25,6 +25,7 @@ import { ReceiptPreviewDialog } from "@/features/payments/components/receipt-pre
 import type { Payment } from "@/data/payments/types";
 import { formatCurrency, formatDate } from "@/lib/formats";
 import { usePagination } from "@/hooks/use-pagination";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 10;
 
@@ -128,7 +129,7 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
     }
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className={cn("flex flex-col gap-4", selectionMode && "pb-24 md:pb-0")}>
             <div className="flex justify-end">
                 <Button variant="outline" size="sm" onClick={toggleSelectionMode} disabled={!selectionMode && pendingPayments.length === 0}>
                     <ListChecksIcon />
@@ -214,7 +215,10 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
             </Table>
 
             {selectionMode && (
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg bg-muted p-3">
+                <div
+                    className="fixed inset-x-0 bottom-0 z-40 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-card p-3 shadow-lg md:inset-x-auto md:right-6 md:bottom-6 md:left-auto md:w-auto md:min-w-[380px] md:rounded-lg md:border md:shadow-xl"
+                    style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+                >
                     <p className="text-sm">
                         <strong>{selectedPayments.length}</strong> seleccionado{selectedPayments.length === 1 ? "" : "s"} ·{" "}
                         <span className="font-heading font-semibold tabular-nums">{formatCurrency(selectedTotal)}</span>
