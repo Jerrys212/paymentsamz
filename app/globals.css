@@ -49,15 +49,24 @@
 }
 
 :root {
-    /* Broadsheet — newsprint palette. See the design canvas the app was
-     restyled from: paper ground, near-black ink, cyan/magenta process
-     accents, tonal ramps generated in OKLCH on a shared lightness scale. */
-    --color-bg: #f3f2f2;
-    --color-surface: #eae9e9;
-    --color-text: #201e1d;
-    --color-accent: #0088b0;
-    --color-accent-2: #d6006c;
-    --color-divider: color-mix(in srgb, #201e1d 16%, transparent);
+    /* Raspberry/rose palette (5 brand swatches): soft blush paper, dusty-rose
+     as the rarer secondary spot color, dark raspberry as ink and as the
+     primary interactive color — it's the only swatch dark/saturated enough
+     to clear WCAG contrast as a filled button background, so it does double
+     duty as --color-text and --color-accent. Ramps below are derived from
+     the 5 base hexes via color-mix() rather than hand-picked per step. */
+    --color-dark-raspberry: #89023e;
+    --color-dusty-rose: #cc7178;
+    --color-soft-blush: #ffd9da;
+    --color-soft-blush-2: #f3e1dd;
+    --color-tea-green: #c7d9b7;
+
+    --color-bg: var(--color-soft-blush-2);
+    --color-surface: var(--color-soft-blush);
+    --color-text: var(--color-dark-raspberry);
+    --color-accent: var(--color-dark-raspberry);
+    --color-accent-2: var(--color-dusty-rose);
+    --color-divider: color-mix(in srgb, var(--color-text) 16%, transparent);
 
     --color-neutral-100: #f8f4f4;
     --color-neutral-200: #eae7e7;
@@ -69,25 +78,25 @@
     --color-neutral-800: #444141;
     --color-neutral-900: #2d2b2b;
 
-    --color-accent-100: #e9f8ff;
-    --color-accent-200: #cbeeff;
-    --color-accent-300: #99e0ff;
-    --color-accent-400: #62c5ee;
-    --color-accent-500: #38a6cf;
-    --color-accent-600: #1186ac;
-    --color-accent-700: #006786;
-    --color-accent-800: #004961;
-    --color-accent-900: #0a303e;
+    --color-accent-100: color-mix(in srgb, var(--color-accent) 12%, white);
+    --color-accent-200: color-mix(in srgb, var(--color-accent) 25%, white);
+    --color-accent-300: color-mix(in srgb, var(--color-accent) 40%, white);
+    --color-accent-400: color-mix(in srgb, var(--color-accent) 65%, white);
+    --color-accent-500: var(--color-accent);
+    --color-accent-600: color-mix(in srgb, var(--color-accent) 88%, black);
+    --color-accent-700: color-mix(in srgb, var(--color-accent) 75%, black);
+    --color-accent-800: color-mix(in srgb, var(--color-accent) 60%, black);
+    --color-accent-900: color-mix(in srgb, var(--color-accent) 45%, black);
 
-    --color-accent-2-100: #fff1f4;
-    --color-accent-2-200: #ffdee6;
-    --color-accent-2-300: #ffc0d0;
-    --color-accent-2-400: #ff90b1;
-    --color-accent-2-500: #ff458e;
-    --color-accent-2-600: #d82071;
-    --color-accent-2-700: #aa0b56;
-    --color-accent-2-800: #790e3d;
-    --color-accent-2-900: #4b1528;
+    --color-accent-2-100: color-mix(in srgb, var(--color-accent-2) 12%, white);
+    --color-accent-2-200: color-mix(in srgb, var(--color-accent-2) 25%, white);
+    --color-accent-2-300: color-mix(in srgb, var(--color-accent-2) 40%, white);
+    --color-accent-2-400: color-mix(in srgb, var(--color-accent-2) 65%, white);
+    --color-accent-2-500: var(--color-accent-2);
+    --color-accent-2-600: color-mix(in srgb, var(--color-accent-2) 88%, black);
+    --color-accent-2-700: color-mix(in srgb, var(--color-accent-2) 75%, black);
+    --color-accent-2-800: color-mix(in srgb, var(--color-accent-2) 60%, black);
+    --color-accent-2-900: color-mix(in srgb, var(--color-accent-2) 45%, black);
 
     /* shadcn semantic tokens, mapped onto the Broadsheet palette above so
      every existing bg-primary/text-muted-foreground/etc. utility already
@@ -127,23 +136,23 @@
 }
 
 .dark {
-    --color-bg: #1a1918;
-    --color-surface: #2d2b2b;
-    --color-text: #f3f2f2;
-    --color-divider: rgba(243, 242, 242, 0.2);
-    --color-accent: #62c5ee;
-    --color-accent-100: #0a303e;
-    --color-accent-700: #99e0ff;
-    --color-accent-800: #cbeeff;
-    --color-accent-2-100: #4b1528;
-    --color-accent-2-700: #ff90b1;
-    --color-accent-2-800: #ffc0d0;
-    --color-neutral-300: #444141;
-    --color-neutral-400: #605d5d;
-    --color-neutral-500: #7d7979;
-    --color-neutral-600: #9b9797;
-    --color-neutral-700: #bab6b6;
-    --color-neutral-800: #d7d3d3;
+    --color-bg: #2a0a17;
+    --color-surface: #3d1420;
+    --color-text: #f3e1dd;
+    --color-divider: rgba(243, 225, 221, 0.2);
+    --color-accent: #e58a9c;
+    --color-accent-100: #4a1f28;
+    --color-accent-700: #f0b8c4;
+    --color-accent-800: #f7d6dd;
+    --color-accent-2-100: #4a2a28;
+    --color-accent-2-700: #e0949a;
+    --color-accent-2-800: #ecbcc0;
+    --color-neutral-300: #4a3a3a;
+    --color-neutral-400: #5c4a4a;
+    --color-neutral-500: #7a6666;
+    --color-neutral-600: #998080;
+    --color-neutral-700: #bfa8a8;
+    --color-neutral-800: #ddd0d0;
 
     --background: var(--color-bg);
     --foreground: var(--color-text);
