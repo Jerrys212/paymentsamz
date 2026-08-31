@@ -1,8 +1,14 @@
 "use client";
 
 import Image from "next/image";
+import { useState, useTransition } from "react";
+import { ListChecksIcon } from "lucide-react";
+import { toast } from "sonner";
 
+import { settlePayments } from "@/actions/payments/settle-payments";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
     Pagination,
     PaginationContent,
@@ -19,6 +25,7 @@ import { ReceiptPreviewDialog } from "@/features/payments/components/receipt-pre
 import type { Payment } from "@/data/payments/types";
 import { formatCurrency, formatDate } from "@/lib/formats";
 import { usePagination } from "@/hooks/use-pagination";
+import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 10;
 
@@ -74,21 +81,80 @@ interface PaymentsTableProps {
 
 export function PaymentsTable({ payments }: PaymentsTableProps) {
     const { page, setPage, totalPages, pageItems, hasPrevious, hasNext } = usePagination(payments, { pageSize: PAGE_SIZE });
+    const [selectionMode, setSelectionMode] = useState(false);
+    const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+    const [isPending, startTransition] = useTransition();
+
+    const pendingPayments = payments.filter((payment) => !payment.settled);
+    const selectedPayments = pendingPayments.filter((payment) => selectedIds.has(payment._id));
+    const selectedTotal = selectedPayments.reduce((sum, payment) => sum + payment.total, 0);
+
+    function toggleSelectionMode() {
+        setSelectionMode((current) => !current);
+        setSelectedIds(new Set());
+    }
+
+    function toggleSelected(id: string) {
+        setSelectedIds((current) => {
+            const next = new Set(current);
+            if (next.has(id)) {
+                next.delete(id);
+            } else {
+                next.add(id);
+            }
+            return next;
+        });
+    }
+
+    function handleBulkSettle() {
+        const ids = selectedPayments.map((payment) => payment._id);
+        startTransition(async () => {
+            const result = await settlePayments(ids);
+            if (!result.success) {
+                toast.error(result.message);
+                return;
+            }
+            toast.success(
+                result.settledCount === result.requestedCount
+                    ? `Se saldaron ${result.settledCount} pago${result.settledCount === 1 ? "" : "s"}.`
+                    : `Se saldaron ${result.settledCount} de ${result.requestedCount} pagos seleccionados.`,
+            );
+            setSelectedIds(new Set());
+            setSelectionMode(false);
+        });
+    }
 
     if (payments.length === 0) {
         return <p className="py-8 text-sm text-muted-foreground">Todavía no hay pagos registrados.</p>;
     }
 
     return (
-        <div className="flex flex-col gap-4">
+        <div className={cn("flex flex-col gap-4", selectionMode && "pb-24 md:pb-0")}>
+            <div className="flex justify-end">
+                <Button variant="outline" size="sm" onClick={toggleSelectionMode} disabled={!selectionMode && pendingPayments.length === 0}>
+                    <ListChecksIcon />
+                    {selectionMode ? "Cancelar selección" : "Saldar varios"}
+                </Button>
+            </div>
+
             {/* Mobile: cards — a table is unusable on a narrow screen */}
             <div className="flex flex-col gap-3 md:hidden">
                 {pageItems.map((payment) => (
                     <Card key={payment._id} className="gap-3 p-4">
                         <div className="flex items-start justify-between gap-3">
-                            <div>
-                                <p className="font-heading text-base font-semibold">{payment.name}</p>
-                                <p className="text-xs text-muted-foreground">Creado {formatDate(payment.createdAt)}</p>
+                            <div className="flex items-start gap-3">
+                                {selectionMode && !payment.settled && (
+                                    <Checkbox
+                                        className="mt-1"
+                                        checked={selectedIds.has(payment._id)}
+                                        onCheckedChange={() => toggleSelected(payment._id)}
+                                        aria-label={`Seleccionar ${payment.name} para saldar`}
+                                    />
+                                )}
+                                <div>
+                                    <p className="font-heading text-base font-semibold">{payment.name}</p>
+                                    <p className="text-xs text-muted-foreground">Creado {formatDate(payment.createdAt)}</p>
+                                </div>
                             </div>
                             <p className="font-heading text-base font-semibold tabular-nums">{formatCurrency(payment.total)}</p>
                         </div>
@@ -107,6 +173,7 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
             <Table className="hidden md:table">
                 <TableHeader>
                     <TableRow>
+                        {selectionMode && <TableHead className="w-10" />}
                         <TableHead className="w-[44%]">Pago</TableHead>
                         <TableHead className="text-right">Monto</TableHead>
                         <TableHead>Estado</TableHead>
@@ -117,6 +184,17 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
                 <TableBody>
                     {pageItems.map((payment) => (
                         <TableRow key={payment._id}>
+                            {selectionMode && (
+                                <TableCell>
+                                    {!payment.settled && (
+                                        <Checkbox
+                                            checked={selectedIds.has(payment._id)}
+                                            onCheckedChange={() => toggleSelected(payment._id)}
+                                            aria-label={`Seleccionar ${payment.name} para saldar`}
+                                        />
+                                    )}
+                                </TableCell>
+                            )}
                             <TableCell className="whitespace-normal">
                                 <span className="block font-heading text-base font-semibold">{payment.name}</span>
                                 <span className="block text-xs text-muted-foreground">Creado {formatDate(payment.createdAt)}</span>
@@ -135,6 +213,26 @@ export function PaymentsTable({ payments }: PaymentsTableProps) {
                     ))}
                 </TableBody>
             </Table>
+
+            {selectionMode && (
+                <div
+                    className="fixed inset-x-0 bottom-0 z-40 flex flex-wrap items-center justify-between gap-3 border-t border-border bg-card p-3 shadow-lg md:inset-x-auto md:right-6 md:bottom-6 md:left-auto md:w-auto md:min-w-[380px] md:rounded-lg md:border md:shadow-xl"
+                    style={{ paddingBottom: "calc(0.75rem + env(safe-area-inset-bottom))" }}
+                >
+                    <p className="text-sm">
+                        <strong>{selectedPayments.length}</strong> seleccionado{selectedPayments.length === 1 ? "" : "s"} ·{" "}
+                        <span className="font-heading font-semibold tabular-nums">{formatCurrency(selectedTotal)}</span>
+                    </p>
+                    <div className="flex gap-2">
+                        <Button variant="outline" size="sm" onClick={() => setSelectedIds(new Set())} disabled={selectedPayments.length === 0}>
+                            Limpiar
+                        </Button>
+                        <Button size="sm" onClick={handleBulkSettle} disabled={selectedPayments.length === 0 || isPending}>
+                            Saldar seleccionados
+                        </Button>
+                    </div>
+                </div>
+            )}
 
             <p className="text-xs text-muted-foreground">
                 {payments.length} {payments.length === 1 ? "pago" : "pagos"} · montos en pesos mexicanos (MXN)
