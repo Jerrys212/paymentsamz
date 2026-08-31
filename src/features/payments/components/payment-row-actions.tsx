@@ -1,8 +1,9 @@
 "use client";
 
-import { CopyIcon, UploadIcon } from "lucide-react";
+import { CalendarClockIcon, CopyIcon, UploadIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { DeferPaymentDialog } from "@/features/payments/components/defer-payment-dialog";
 import { PaymentFormDialog } from "@/features/payments/components/payment-form-dialog";
 import { UploadReceiptDialog } from "@/features/payments/components/upload-receipt-dialog";
 import type { Payment } from "@/data/payments/types";
@@ -40,6 +41,18 @@ export function PaymentRowActions({ payment }: PaymentRowActionsProps) {
                         >
                             <UploadIcon />
                             {/* <span className="hidden sm:inline">Comprobante</span> */}
+                        </Button>
+                    }
+                />
+            )}
+            {!payment.settled && (
+                <DeferPaymentDialog
+                    paymentId={payment._id}
+                    paymentName={payment.name}
+                    paymentTotal={payment.total}
+                    trigger={
+                        <Button variant="ghost" size="icon-sm" aria-label={`Diferir a meses sin intereses ${payment.name}`}>
+                            <CalendarClockIcon />
                         </Button>
                     }
                 />
