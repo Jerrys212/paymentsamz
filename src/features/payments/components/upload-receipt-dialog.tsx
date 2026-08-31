@@ -14,11 +14,10 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
+    DialogTriggerButton,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { formatCurrency } from "@/lib/formats";
 
 interface UploadReceiptDialogProps {
@@ -65,16 +64,7 @@ export function UploadReceiptDialog({ paymentId, paymentName, paymentTotal, curr
                 if (!next) setPreviewUrl(null);
             }}
         >
-            {tooltip ? (
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <DialogTrigger asChild>{trigger}</DialogTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>{tooltip}</TooltipContent>
-                </Tooltip>
-            ) : (
-                <DialogTrigger asChild>{trigger}</DialogTrigger>
-            )}
+            <DialogTriggerButton trigger={trigger} tooltip={tooltip} />
             <DialogContent>
                 <DialogHeader>
                     <p className="text-[10px] tracking-[0.12em] uppercase" style={{ color: "var(--color-accent-700)" }}>
