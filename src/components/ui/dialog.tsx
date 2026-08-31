@@ -16,6 +16,23 @@ function DialogTrigger({ ...props }: React.ComponentProps<typeof DialogPrimitive
     return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
 }
 
+/** A DialogTrigger, optionally wrapped in a Tooltip. Both Radix Tooltip and
+ *  Dialog triggers rely on `asChild` slot-cloning, so the tooltip must wrap
+ *  the DialogTrigger rather than the other way around for both to work. */
+function DialogTriggerButton({ trigger, tooltip }: { trigger: React.ReactNode; tooltip?: string }) {
+    if (!tooltip) {
+        return <DialogTrigger asChild>{trigger}</DialogTrigger>;
+    }
+    return (
+        <Tooltip>
+            <TooltipTrigger asChild>
+                <DialogTrigger asChild>{trigger}</DialogTrigger>
+            </TooltipTrigger>
+            <TooltipContent>{tooltip}</TooltipContent>
+        </Tooltip>
+    );
+}
+
 function DialogPortal({ ...props }: React.ComponentProps<typeof DialogPrimitive.Portal>) {
     return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
 }
@@ -113,4 +130,16 @@ function DialogDescription({ className, ...props }: React.ComponentProps<typeof 
     );
 }
 
-export { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger };
+export {
+    Dialog,
+    DialogClose,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogOverlay,
+    DialogPortal,
+    DialogTitle,
+    DialogTrigger,
+    DialogTriggerButton,
+};

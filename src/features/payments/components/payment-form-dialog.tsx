@@ -15,11 +15,10 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
+    DialogTriggerButton,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { PaymentFormSchema, type PaymentFormValues } from "@/lib/validations/payments";
 
 interface PaymentFormDialogProps {
@@ -70,16 +69,7 @@ export function PaymentFormDialog({ mode, defaultValues, trigger, tooltip }: Pay
                 }
             }}
         >
-            {tooltip ? (
-                <Tooltip>
-                    <TooltipTrigger asChild>
-                        <DialogTrigger asChild>{trigger}</DialogTrigger>
-                    </TooltipTrigger>
-                    <TooltipContent>{tooltip}</TooltipContent>
-                </Tooltip>
-            ) : (
-                <DialogTrigger asChild>{trigger}</DialogTrigger>
-            )}
+            <DialogTriggerButton trigger={trigger} tooltip={tooltip} />
             <DialogContent>
                 <DialogHeader>
                     {mode === "clone" && defaultValues && (
