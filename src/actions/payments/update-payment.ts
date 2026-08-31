@@ -3,8 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { ErrorTracker } from "@/adapters/error-tracking";
-import { ApiError, apiFetch } from "@/data/client";
+import { apiFetch, resolveActionErrorMessage } from "@/data/client";
 import { UpdatePaymentResponseSchema, type Payment } from "@/data/payments/types";
 import { env } from "@/lib/env";
 import { ObjectIdSchema } from "@/lib/validations/payments";
@@ -40,10 +39,7 @@ export async function updatePayment(input: UpdatePaymentInput): Promise<UpdatePa
         revalidatePath("/");
         return { success: true, data: response.data };
     } catch (error) {
-        if (error instanceof z.ZodError) {
-            ErrorTracker.captureException(error, { source: "updatePayment" });
-        }
-        const message = error instanceof ApiError ? error.message : "No se pudo actualizar el pago. Intenta de nuevo.";
+        const message = resolveActionErrorMessage(error, "updatePayment", "No se pudo actualizar el pago. Intenta de nuevo.");
         return { success: false, message };
     }
 }
